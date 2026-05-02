@@ -1,14 +1,18 @@
-# Utiliza a imagem oficial do MariaDB
-FROM mariadb:11.3
+FROM debian:bookworm
 
-# Copia arquivos de configuração personalizados, se existirem
-# COPY conf/my.cnf /etc/mysql/my.cnf
-# COPY tools/init.sql /docker-entrypoint-initdb.d/
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends mariadb-server mariadb-client \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& rm -rf /var/lib/mysql/* \
+	&& mkdir -p /run/mysqld \
+	&& chown -R mysql:mysql /run/mysqld /var/lib/mysql
 
-# Define variáveis de ambiente (serão sobrescritas pelo docker-compose/.env)
-ENV MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-ENV MYSQL_DATABASE=${MYSQL_DATABASE}
-ENV MYSQL_USER=${MYSQL_USER}
-ENV MYSQL_PASSWORD=${MYSQL_PASSWORD}
+COPY conf/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
+COPY tools/entrypoint.sh /usr/local/bin/entrypoint.sh
+
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 3306
+
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["mysqld", "--user=mysql", "--console"]

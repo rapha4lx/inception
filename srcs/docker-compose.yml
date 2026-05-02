@@ -1,25 +1,66 @@
-version: '3.8'
-
 services:
   mariadb:
-    build: ./requirements/mariadb
+    build:
+      context: ./requirements/mariadb
     container_name: mariadb
+    image: mariadb
     env_file:
-      - .env
-    restart: unless-stopped
+      - ${COMPOSE_ENV_FILE:-.env}
+    restart: always
     volumes:
       - mariadb_data:/var/lib/mysql
     networks:
       - inception
-    ports:
-      - "3306:3306"
 
-# Adicione outros serviços (nginx, wordpress, etc) conforme necessário
+  wordpress:
+    build:
+      context: ./requirements/wordpress
+    container_name: wordpress
+    image: wordpress
+    env_file:
+      - ${COMPOSE_ENV_FILE:-.env}
+    restart: always
+    depends_on:
+      - mariadb
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception
+
+  nginx:
+    build:
+      context: ./requirements/nginx
+    container_name: nginx
+    image: nginx
+    env_file:
+      - ${COMPOSE_ENV_FILE:-.env}
+    restart: always
+    depends_on:
+      - wordpress
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress_data:/var/www/html:ro
+    networks:
+      - inception
 
 volumes:
   mariadb_data:
+    name: mariadb_data
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH}/mariadb
+  wordpress_data:
+    name: wordpress_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH}/wordpress
 
 networks:
   inception:
+    name: inception
     driver: bridge
