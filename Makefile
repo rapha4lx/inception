@@ -38,7 +38,11 @@ status ps: check-env
 	$(COMPOSE) ps
 
 prepare:
-	mkdir -p $(DATA_DIR)/mariadb $(DATA_DIR)/wordpress
+	@mkdir -p "$(DATA_DIR)/mariadb" "$(DATA_DIR)/wordpress" || \
+		(echo "Could not create $(DATA_DIR). Check DATA_PATH in $(ENV_FILE) and your permissions."; exit 1)
+	@test -d "$(DATA_DIR)/mariadb" && test -d "$(DATA_DIR)/wordpress" || \
+		(echo "Missing data directories under $(DATA_DIR). Run make prepare or create them manually."; exit 1)
+	@echo "Using persistent data directory: $(DATA_DIR)"
 
 shell-nginx: check-env
 	$(COMPOSE) exec nginx sh

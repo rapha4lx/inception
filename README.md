@@ -57,6 +57,9 @@ The Makefile creates the expected host directories:
 MariaDB data and WordPress files persist there through Docker named volumes
 backed by bind mounts.
 
+Run `make prepare` before using Docker Compose directly. Docker requires these
+host directories to exist before it can mount the named volumes.
+
 ## Commands
 
 ```sh
@@ -90,3 +93,21 @@ certificate warning.
 
 Use [docs/evaluation-checklist.md](docs/evaluation-checklist.md) before peer
 evaluation.
+
+## Troubleshooting
+
+If Docker reports an error like this:
+
+```txt
+failed to mount local volume: mount /home/<login>/data/mariadb: no such file or directory
+```
+
+Create the host data directories first:
+
+```sh
+make prepare
+```
+
+If it still fails, check that `DATA_PATH` in `srcs/.env` points to a writable
+host path and remove stale Docker volumes with `make fclean` before starting
+again.

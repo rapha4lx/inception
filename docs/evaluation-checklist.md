@@ -3,6 +3,7 @@
 ## Startup
 
 - `srcs/.env` exists and contains non-placeholder passwords.
+- `make prepare` creates both host data directories without permission errors.
 - `/etc/hosts` maps the configured domain to `127.0.0.1`.
 - `make` builds all three custom images and starts the stack.
 - `docker compose -f srcs/docker-compose.yml ps` shows `nginx`, `wordpress`,
